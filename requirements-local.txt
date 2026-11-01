@@ -1,0 +1,2 @@
+# Optional: bundled PostgreSQL server for local runs (no system install needed)
+pgserver>=0.1.4
