@@ -6,14 +6,14 @@ WITH totals AS (
     SELECT state,
            COUNT(*)::bigint AS transactions,
            SUM(orders)::bigint AS orders,
-           SUM(amount)::bigint AS amount
+           ROUND(SUM(amount), 2) AS amount
     FROM diwali_sales
     GROUP BY state
 )
 SELECT state,
        transactions,
        orders,
-       amount,
+       amount::float8 AS amount,
        ROUND(100.0 * amount / SUM(amount) OVER (), 2)::float8 AS amount_share_pct,
        ROUND(100.0 * SUM(amount) OVER (ORDER BY amount DESC, state) / SUM(amount) OVER (), 2)::float8
            AS cumulative_amount_share_pct,

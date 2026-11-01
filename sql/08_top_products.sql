@@ -2,7 +2,7 @@
 -- Pandas equivalent: festival_sales.analysis.top_products(df, 10)
 SELECT product_id,
        SUM(orders)::bigint AS orders,
-       SUM(amount)::bigint AS amount,
+       ROUND(SUM(amount), 2)::float8 AS amount,
        RANK() OVER (ORDER BY SUM(orders) DESC)::int AS orders_rank
 FROM diwali_sales
 GROUP BY product_id

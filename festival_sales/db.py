@@ -29,7 +29,7 @@ CREATE TABLE {TABLE} (
     occupation       VARCHAR(50)  NOT NULL,
     product_category VARCHAR(50)  NOT NULL,
     orders           SMALLINT     NOT NULL CHECK (orders > 0),
-    amount           INTEGER      NOT NULL CHECK (amount >= 0)
+    amount           NUMERIC(12,2) NOT NULL CHECK (amount >= 0)
 );
 CREATE INDEX idx_{TABLE}_state ON {TABLE} (state);
 CREATE INDEX idx_{TABLE}_zone ON {TABLE} (zone);

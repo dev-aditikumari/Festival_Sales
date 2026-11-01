@@ -84,11 +84,20 @@ def test_gender_uppercased(tiny_raw):
     assert df.loc[0, "gender"] == "F"
 
 
-def test_numeric_columns_become_integers(tiny_raw):
-    tiny_raw["Amount"] = tiny_raw["Amount"].astype(float)
+def test_integer_columns_become_integers_and_amount_stays_decimal(tiny_raw):
     df, _ = clean(tiny_raw)
     for col in cleaning.INT_COLUMNS:
         assert df[col].dtype == np.int64
+    assert df["amount"].dtype == np.float64
+
+
+def test_decimal_amount_keeps_cents(tiny_raw):
+    tiny_raw.loc[0, "Amount"] = 123.456
+    df, _ = clean(tiny_raw)
+    assert df.loc[0, "amount"] == 123.46
+    tiny_raw.loc[0, "Amount"] = 123.45
+    df, _ = clean(tiny_raw)
+    assert df.loc[0, "amount"] == 123.45
 
 
 def test_duplicates_are_counted_but_kept(tiny_raw):
@@ -148,6 +157,8 @@ def test_real_data_cleaning_counts(real_clean):
     assert report.rows_out == 11239
     assert report.dropped_missing == {"amount": 12}
     assert report.dropped_columns == ["Status", "unnamed1"]
+    assert (df["amount"] % 1 != 0).sum() == 5
+    assert df["amount"].sum().round(2) == 106249132.43
     assert "Andhra Pradesh" in set(df["state"])
     assert not df["state"].str.contains("\xa0|�|\\?", regex=True).any()
     assert df["state"].nunique() == 16

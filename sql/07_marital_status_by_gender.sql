@@ -6,7 +6,7 @@ WITH totals AS (
            gender,
            COUNT(*)::bigint AS transactions,
            SUM(orders)::bigint AS orders,
-           SUM(amount)::bigint AS amount
+           ROUND(SUM(amount), 2) AS amount
     FROM diwali_sales
     GROUP BY marital_status, gender
 )
@@ -14,7 +14,7 @@ SELECT marital_status::int AS marital_status,
        gender::text AS gender,
        transactions,
        orders,
-       amount,
+       amount::float8 AS amount,
        ROUND(100.0 * amount / SUM(amount) OVER (), 2)::float8 AS amount_share_pct,
        ROUND(100.0 * SUM(amount) OVER (ORDER BY amount DESC, marital_status, gender)
              / SUM(amount) OVER (), 2)::float8 AS cumulative_amount_share_pct,

@@ -25,7 +25,9 @@ TINY_ROWS = [
 @pytest.fixture
 def tiny_clean():
     df = pd.DataFrame(TINY_ROWS, columns=COLUMNS)
-    return df.astype({c: "int64" for c in ["user_id", "age", "marital_status", "orders", "amount"]})
+    df = df.astype({c: "int64" for c in ["user_id", "age", "marital_status", "orders"]})
+    df["amount"] = df["amount"].astype("float64")
+    return df
 
 
 @pytest.fixture
@@ -81,4 +83,11 @@ def db_full(engine, real_clean):
 @pytest.fixture
 def db_tiny(engine, tiny_clean):
     _ensure(engine, "tiny", tiny_clean)
+    return engine
+
+
+@pytest.fixture
+def db_scratch(engine):
+    """Engine for a test that loads its own data; the next fixture user reloads."""
+    _loaded["name"] = None
     return engine

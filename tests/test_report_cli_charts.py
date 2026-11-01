@@ -5,7 +5,7 @@ from festival_sales import charts, cli, report
 
 def test_findings_on_tiny_data(tiny_clean):
     f = report.compute_findings(tiny_clean)
-    assert f["top_state"] == ("Delhi", 900, 47.37)
+    assert f["top_state"] == ("Delhi", 900.0, 47.37)
     assert f["top_zone"][0] == "Northern"
     assert f["top_gender"][0] == "F"
     assert f["top_age_group"][0] == "36-45"
@@ -21,9 +21,9 @@ def test_findings_reject_empty_frame(tiny_clean):
 
 def test_markdown_contains_real_numbers(tiny_clean):
     text = report.render_markdown(report.compute_findings(tiny_clean), rows_dropped=2)
-    assert "Top state by amount: Delhi with 900 (47.37% of the total)" in text
+    assert "Top state by amount: Delhi with 900.00 (47.37% of the total)" in text
     assert "2 rows were dropped" in text
-    assert "| Delhi | 6 | 900 | 47.37 |" in text
+    assert "| Delhi | 6 | 900.00 | 47.37 |" in text
 
 
 def test_charts_are_written(tiny_clean, tmp_path):

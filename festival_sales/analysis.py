@@ -30,6 +30,7 @@ def summarize(df: pd.DataFrame, by) -> pd.DataFrame:
     grouped = (
         df.groupby(keys, as_index=False)
         .agg(transactions=("amount", "size"), orders=("orders", "sum"), amount=("amount", "sum"))
+        .assign(amount=lambda t: t["amount"].round(2))
         .sort_values(["amount"] + keys, ascending=[False] + [True] * len(keys))
         .reset_index(drop=True)
     )
@@ -90,6 +91,7 @@ def top_products(df: pd.DataFrame, n: int = 10) -> pd.DataFrame:
     table = (
         df.groupby("product_id", as_index=False)
         .agg(orders=("orders", "sum"), amount=("amount", "sum"))
+        .assign(amount=lambda t: t["amount"].round(2))
         .sort_values(["orders", "product_id"], ascending=[False, True])
         .reset_index(drop=True)
     )
@@ -102,6 +104,7 @@ def category_rank_within_zone(df: pd.DataFrame) -> pd.DataFrame:
     table = (
         df.groupby(["zone", "product_category"], as_index=False)
         .agg(amount=("amount", "sum"))
+        .assign(amount=lambda t: t["amount"].round(2))
         .sort_values(["zone", "amount", "product_category"], ascending=[True, False, True])
         .reset_index(drop=True)
     )
@@ -115,6 +118,6 @@ def overall_totals(df: pd.DataFrame) -> dict:
     return {
         "transactions": int(len(df)),
         "orders": int(df["orders"].sum()),
-        "amount": int(df["amount"].sum()),
+        "amount": round(float(df["amount"].sum()), 2),
         "customers": int(df["user_id"].nunique()),
     }

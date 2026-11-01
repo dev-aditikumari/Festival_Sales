@@ -12,7 +12,8 @@ Cleaning rules, applied in this order:
 5. Rows with a missing value in any schema column are dropped (in the source this is
    12 rows with no Amount). The count per column is reported.
 6. Rows with orders <= 0, a negative amount or a gender other than F/M are dropped.
-7. Numeric columns are cast to integers.
+7. Numeric columns other than amount are cast to integers. Amount stays a decimal
+   number rounded to 2 places (5 source rows have cents).
 
 Exact duplicate rows are counted but kept, because the source has no order id and a
 repeat of the same customer, product and amount can be a genuine second purchase.
@@ -52,7 +53,7 @@ TEXT_COLUMNS = [
     "occupation",
     "product_category",
 ]
-INT_COLUMNS = ["user_id", "age", "marital_status", "orders", "amount"]
+INT_COLUMNS = ["user_id", "age", "marital_status", "orders"]
 
 # The file is not valid UTF-8; latin-1 reads every byte without error.
 CSV_ENCODING = "latin-1"
@@ -130,16 +131,18 @@ def clean(raw: pd.DataFrame) -> tuple[pd.DataFrame, CleaningReport]:
     df = df.dropna()
 
     df["gender"] = df["gender"].str.upper()
-    for col in INT_COLUMNS:
+    for col in [*INT_COLUMNS, "amount"]:
         df[col] = pd.to_numeric(df[col], errors="coerce")
     valid = (
         df["gender"].isin(["F", "M"])
         & df[INT_COLUMNS].notna().all(axis=1)
         & (df["orders"] > 0)
+        & df["amount"].notna()
         & (df["amount"] >= 0)
     )
     report.dropped_invalid = int((~valid).sum())
     df = df[valid].astype({c: "int64" for c in INT_COLUMNS}).reset_index(drop=True)
+    df["amount"] = df["amount"].astype("float64").round(2)
 
     report.duplicate_rows = int(df.duplicated().sum())
     report.rows_out = len(df)

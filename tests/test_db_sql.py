@@ -6,6 +6,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import DBAPIError
 
 from festival_sales import analysis, db
+from festival_sales.cleaning import clean
 
 CASES = {
     "01_by_state.sql": analysis.by_state,
@@ -85,7 +86,7 @@ def test_column_types(db_full):
             {"t": db.TABLE},
         ).all()
     types = dict(rows)
-    assert types["amount"] == "integer"
+    assert types["amount"] == "numeric"
     assert types["orders"] == "smallint"
     assert types["state"] == "character varying"
 
@@ -112,3 +113,16 @@ def test_get_engine_without_url_raises(monkeypatch):
     monkeypatch.delenv("DATABASE_URL", raising=False)
     with pytest.raises(RuntimeError, match="DATABASE_URL"):
         db.get_engine()
+
+
+def test_decimal_amount_survives_cleaning_and_database(db_scratch, tiny_raw):
+    tiny_raw.loc[0, "Amount"] = 100.55
+    df, _ = clean(tiny_raw)
+    assert df.loc[0, "amount"] == 100.55
+    db.load_dataframe(df, db_scratch)
+    with db_scratch.connect() as conn:
+        stored = conn.execute(text(f"SELECT amount FROM {db.TABLE} WHERE user_id = 1")).scalar_one()
+    assert float(stored) == 100.55
+    sql_result = db.run_sql_file(db_scratch, db.SQL_DIR / "04_by_age_group.sql")
+    _compare(sql_result, analysis.by_age_group(df))
+    assert sql_result.set_index("age_group").loc["26-35", "amount"] == 500.55

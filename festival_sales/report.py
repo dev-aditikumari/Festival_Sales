@@ -12,7 +12,7 @@ MARITAL = {0: "unmarried", 1: "married"}
 
 def _top(table: pd.DataFrame, key: str) -> tuple[str, int, float]:
     row = table.iloc[0]
-    return row[key], int(row["amount"]), float(row["amount_share_pct"])
+    return row[key], float(row["amount"]), float(row["amount_share_pct"])
 
 
 def compute_findings(df: pd.DataFrame) -> dict:
@@ -49,15 +49,19 @@ def compute_findings(df: pd.DataFrame) -> dict:
     }
 
 
-def _money(value: int) -> str:
+def _money(value) -> str:
     return f"{value:,}"
+
+
+def _amt(value) -> str:
+    return f"{float(value):,.2f}"
 
 
 def _fmt(value) -> str:
     if isinstance(value, (int, np.integer)):
         return _money(int(value))
     if isinstance(value, (float, np.floating)):
-        return f"{value:.2f}"
+        return f"{value:,.2f}"
     return str(value)
 
 
@@ -89,26 +93,25 @@ def render_markdown(f: dict, rows_dropped: int = 0) -> str:
         "",
         f"The analysis covers {_money(t['transactions'])} transactions from "
         f"{_money(t['customers'])} distinct user ids, {_money(t['orders'])} orders and a total "
-        f"amount of {_money(t['amount'])}. {rows_dropped} rows were dropped during cleaning.",
+        f"amount of {_amt(t['amount'])}. {rows_dropped} rows were dropped during cleaning.",
         "",
         "## Headlines",
         "",
-        f"- Top state by amount: {ts[0]} with {_money(ts[1])} ({ts[2]:.2f}% of the total). "
+        f"- Top state by amount: {ts[0]} with {_amt(ts[1])} ({ts[2]:.2f}% of the total). "
         f"The top three states together account for {f['top3_states_share']:.2f}%.",
         f"- Top state by number of orders: {f['top_state_by_orders'][0]} "
         f"with {_money(f['top_state_by_orders'][1])} orders.",
-        f"- Top zone: {f['top_zone'][0]} with {_money(f['top_zone'][1])} "
-        f"({f['top_zone'][2]:.2f}%).",
-        f"- {gender_names[tg[0]]} spent the most: {_money(tg[1])} ({tg[2]:.2f}%). "
-        f"{gender_names[other]} spent {_money(int(by_gender.loc[other, 'amount']))}.",
-        f"- Top age group: {ta[0]} with {_money(ta[1])} ({ta[2]:.2f}%).",
-        f"- Top occupation: {f['top_occupation'][0]} with {_money(f['top_occupation'][1])} "
+        f"- Top zone: {f['top_zone'][0]} with {_amt(f['top_zone'][1])} ({f['top_zone'][2]:.2f}%).",
+        f"- {gender_names[tg[0]]} spent the most: {_amt(tg[1])} ({tg[2]:.2f}%). "
+        f"{gender_names[other]} spent {_amt(by_gender.loc[other, 'amount'])}.",
+        f"- Top age group: {ta[0]} with {_amt(ta[1])} ({ta[2]:.2f}%).",
+        f"- Top occupation: {f['top_occupation'][0]} with {_amt(f['top_occupation'][1])} "
         f"({f['top_occupation'][2]:.2f}%).",
-        f"- Top product category: {f['top_category'][0]} with {_money(f['top_category'][1])} "
+        f"- Top product category: {f['top_category'][0]} with {_amt(f['top_category'][1])} "
         f"({f['top_category'][2]:.2f}%). The top three categories make up "
         f"{f['top3_categories_share']:.2f}%.",
         f"- Biggest marital status and gender segment: {best_segment['segment']} with "
-        f"{_money(int(best_segment['amount']))} ({best_segment['amount_share_pct']:.2f}%).",
+        f"{_amt(best_segment['amount'])} ({best_segment['amount_share_pct']:.2f}%).",
         "",
         "## Sales by state (top 10)",
         "",

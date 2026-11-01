@@ -111,7 +111,7 @@ def test_overall_totals(tiny_clean):
     assert analysis.overall_totals(tiny_clean) == {
         "transactions": 6,
         "orders": 13,
-        "amount": 1900,
+        "amount": 1900.0,
         "customers": 6,
     }
 
